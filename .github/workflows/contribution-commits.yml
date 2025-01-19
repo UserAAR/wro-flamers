@@ -1,0 +1,48 @@
+name: Contribution Commits
+
+on:
+  workflow_dispatch:
+
+jobs:
+  backdate-commits:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v3
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "UserAAR"
+          git config --global user.email "amil.abdullazada@gmail.com"
+
+      - name: Generate Commits for Past Dates
+        run: |
+          # Maksimum ve minimum commit sayısı
+          min_commits=2
+          max_commits=5
+          
+          # Eski 5 gün için commit ekle
+          for i in {5..1}; do
+            day=$i
+            # Rastgele commit sayısı belirle
+            commit_count=$((RANDOM % (max_commits - min_commits + 1) + min_commits))
+            
+            for j in $(seq 1 $commit_count); do
+              # Rastgele saat ve dakika belirle
+              hour=$((RANDOM % 24))
+              minute=$((RANDOM % 60))
+              # Commit tarihi oluştur
+              commit_date="$(date -d "$day days ago $hour:$minute" '+%Y-%m-%d %H:%M:%S')"
+              
+              # README.md dosyasına rastgele veri ekle
+              echo "Commit on $commit_date" >> README.md
+              
+              # Git commit oluştur
+              git add README.md
+              GIT_AUTHOR_DATE="$commit_date" GIT_COMMITTER_DATE="$commit_date" git commit -m "Random commit on $commit_date"
+            done
+          done
+
+      - name: Push Commits
+        run: git push
